@@ -3,28 +3,74 @@ import { NextResponse } from "next/server";
 import { createToken } from "@/lib/auth";
 
 export async function POST(request: Request) {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const adminPassword = process.env.ADMIN_PASSWORD;
+
+  if (!adminEmail || !adminPassword) {
+    return NextResponse.json(
+      { message: "Authentication is not configured." },
+      { status: 500 }
+    );
+  }
+
+  // Parse and validate the incoming request.
+  let body: unknown;
+
   try {
-    const { email, password } = await request.json();
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      { message: "Invalid request body." },
+      { status: 400 }
+    );
+  }
 
-    const adminEmail = process.env.ADMIN_EMAIL;
-    const adminPassword = process.env.ADMIN_PASSWORD;
+  if (
+    typeof body !== "object" ||
+    body === null ||
+    !("email" in body) ||
+    !("password" in body)
+  ) {
+    return NextResponse.json(
+      { message: "Email and password are required." },
+      { status: 400 }
+    );
+  }
 
-    if (
-      !email ||
-      !password ||
-      email !== adminEmail ||
-      password !== adminPassword
-    ) {
-      return NextResponse.json(
-        { message: "Invalid email or password" },
-        { status: 401 }
-      );
-    }
+  const { email, password } = body;
 
-    const token = await createToken();
+  if (
+    typeof email !== "string" ||
+    typeof password !== "string" ||
+    !email.trim() ||
+    !password
+  ) {
+    return NextResponse.json(
+      { message: "Please provide valid credentials." },
+      { status: 400 }
+    );
+  }
+
+  // Normalize email, but never modify the password.
+  const normalizedEmail = email.trim().toLowerCase();
+  const configuredEmail = adminEmail.trim().toLowerCase();
+
+  if (
+    normalizedEmail !== configuredEmail ||
+    password !== adminPassword
+  ) {
+    return NextResponse.json(
+      { message: "Invalid email or password." },
+      { status: 401 }
+    );
+  }
+
+  try {
+    // Generate a JWT associated with the authenticated admin.
+    const token = await createToken(normalizedEmail);
 
     const response = NextResponse.json({
-      message: "Login successful",
+      message: "Login successful.",
     });
 
     response.cookies.set("session", token, {
@@ -36,9 +82,11 @@ export async function POST(request: Request) {
     });
 
     return response;
-  } catch {
+  } catch (error) {
+    console.error("Login error:", error);
+
     return NextResponse.json(
-      { message: "Something went wrong" },
+      { message: "Unable to complete login." },
       { status: 500 }
     );
   }
