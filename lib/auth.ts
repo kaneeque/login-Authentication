@@ -1,7 +1,6 @@
 
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 
-// Keep token lifetime consistent with the session cookie.
 const TOKEN_EXPIRY = "1h";
 
 const TOKEN_ISSUER = "login-authentication";
@@ -14,7 +13,6 @@ interface SessionPayload extends JWTPayload {
 function getSecret(): Uint8Array {
   const secretValue = process.env.SESSION_SECRET;
 
-  // Fail securely if the application secret is missing or weak.
   if (!secretValue || new TextEncoder().encode(secretValue).length < 32) {
     throw new Error(
       "SESSION_SECRET must contain at least 32 bytes."
@@ -24,7 +22,6 @@ function getSecret(): Uint8Array {
   return new TextEncoder().encode(secretValue);
 }
 
-// Generate a JWT containing the authenticated admin's identity.
 export async function createToken(subject: string): Promise<string> {
   return new SignJWT({ authenticated: true })
     .setProtectedHeader({ alg: "HS256" })
@@ -36,7 +33,6 @@ export async function createToken(subject: string): Promise<string> {
     .sign(getSecret());
 }
 
-// Verify the token and retrieve its session information.
 export async function getSession(
   token: string
 ): Promise<SessionPayload | null> {
@@ -60,8 +56,6 @@ export async function getSession(
   }
 }
 
-// Preserve the existing boolean verification interface.
-// Existing proxy and dashboard checks can continue working.
 export async function verifyToken(token: string): Promise<boolean> {
   return (await getSession(token)) !== null;
 }
