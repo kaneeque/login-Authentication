@@ -13,7 +13,6 @@ export async function POST(request: Request) {
     );
   }
 
-  // Parse and validate the incoming request.
   let body: unknown;
 
   try {
@@ -51,7 +50,6 @@ export async function POST(request: Request) {
     );
   }
 
-  // Normalize email, but never modify the password.
   const normalizedEmail = email.trim().toLowerCase();
   const configuredEmail = adminEmail.trim().toLowerCase();
 
@@ -66,7 +64,6 @@ export async function POST(request: Request) {
   }
 
   try {
-    // Generate a JWT associated with the authenticated admin.
     const token = await createToken(normalizedEmail);
 
     const response = NextResponse.json({
