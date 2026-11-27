@@ -1,8 +1,5 @@
 
-import { Suspense } from "react";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth";
+import { requireSession } from "@/lib/dal";
 
 function formatTimestamp(timestamp: number): string {
   return new Date(timestamp * 1000).toLocaleString("en-IN", {
@@ -32,29 +29,8 @@ function getRemainingTime(expiry: number): string {
   return "Less than a minute";
 }
 
-function SettingsLoading() {
-  return (
-    <div className="animate-pulse space-y-6">
-      <div className="h-8 w-48 rounded-lg bg-slate-200" />
-      <div className="h-48 rounded-xl bg-slate-200" />
-      <div className="h-48 rounded-xl bg-slate-200" />
-    </div>
-  );
-}
-
-async function SettingsContent() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
-
-  if (!token) {
-    redirect("/login");
-  }
-
-  const session = await getSession(token);
-
-  if (!session) {
-    redirect("/login");
-  }
+export default async function SettingsPage() {
+  const session = await requireSession();
 
   const email =
     typeof session.sub === "string"
@@ -75,7 +51,6 @@ async function SettingsContent() {
 
   return (
     <section className="mx-auto max-w-7xl space-y-8">
-
       <div>
         <p className="text-sm font-medium text-teal-700">
           APPLICATION CONFIGURATION
@@ -157,7 +132,7 @@ async function SettingsContent() {
               <span className="h-8 w-8 rounded-lg bg-[#0F2926]" />
               <span className="h-8 w-8 rounded-lg bg-[#0F766E]" />
               <span className="h-8 w-8 rounded-lg bg-[#10B981]" />
-              <span className="h-8 w-8 rounded-lg bg-[#E6F4F1] border border-slate-200" />
+              <span className="h-8 w-8 rounded-lg border border-slate-200 bg-[#E6F4F1]" />
             </div>
 
             <div>
@@ -195,7 +170,6 @@ async function SettingsContent() {
         </div>
 
         <div className="mt-6 grid gap-6 sm:grid-cols-2">
-
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
               Authentication Status
@@ -324,15 +298,6 @@ async function SettingsContent() {
           Account editing is not available yet.
         </p>
       </div>
-
     </section>
-  );
-}
-
-export default function SettingsPage() {
-  return (
-    <Suspense fallback={<SettingsLoading />}>
-      <SettingsContent />
-    </Suspense>
   );
 }

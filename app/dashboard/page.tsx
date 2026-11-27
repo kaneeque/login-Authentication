@@ -1,48 +1,13 @@
 
-import { Suspense } from "react";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth";
-import StatCard from "@/components/dashboard/StatCard";
 import Link from "next/link";
+import StatCard from "@/components/dashboard/StatCard";
+import { requireSession } from "@/lib/dal";
 
-// Loading state while authentication is being verified.
-function DashboardLoading() {
-  return (
-    <div className="space-y-6 animate-pulse">
-      <div className="h-10 w-64 rounded-lg bg-slate-200" />
-
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {[1, 2, 3].map((item) => (
-          <div
-            key={item}
-            className="h-36 rounded-xl bg-slate-200"
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Authenticated dashboard content.
-async function DashboardContent() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
-
-  if (!token) {
-    redirect("/login");
-  }
-
-  const session = await getSession(token);
-
-  if (!session) {
-    redirect("/login");
-  }
+export default async function DashboardPage() {
+  const session = await requireSession();
 
   return (
     <section className="mx-auto max-w-7xl space-y-8">
-
-      {/* Welcome Section */}
       <div>
         <p className="text-sm font-medium text-blue-600">
           ADMINISTRATION
@@ -57,9 +22,7 @@ async function DashboardContent() {
         </p>
       </div>
 
-      {/* Statistics Cards */}
       <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-
         <StatCard
           title="Account Status"
           value="Active"
@@ -80,14 +43,10 @@ async function DashboardContent() {
           description="Configured token expiration"
           icon="◷"
         />
-
       </div>
 
-      {/* Account Information */}
       <div className="grid gap-6 lg:grid-cols-3">
-
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
-
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-slate-900">
               Account Information
@@ -99,7 +58,6 @@ async function DashboardContent() {
           </div>
 
           <div className="mt-6 space-y-5">
-
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
                 Administrator Email
@@ -129,13 +87,10 @@ async function DashboardContent() {
                 HTTP-only Cookie
               </p>
             </div>
-
           </div>
         </div>
 
-        {/* Quick Actions */}
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-
           <h3 className="text-lg font-semibold text-slate-900">
             Quick Actions
           </h3>
@@ -145,7 +100,6 @@ async function DashboardContent() {
           </p>
 
           <div className="mt-6 space-y-3">
-
             <Link
               href="/dashboard/profile"
               className="flex items-center justify-between rounded-lg border border-slate-200 p-4 text-sm font-medium text-slate-700 transition hover:border-blue-300 hover:bg-blue-50"
@@ -161,15 +115,11 @@ async function DashboardContent() {
               Security Settings
               <span aria-hidden="true">→</span>
             </Link>
-
           </div>
         </div>
-
       </div>
 
-      {/* Session Information */}
       <div className="rounded-xl border border-blue-100 bg-blue-50 p-6">
-
         <div className="flex items-start gap-4">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 text-blue-700">
             🔒
@@ -187,18 +137,7 @@ async function DashboardContent() {
             </p>
           </div>
         </div>
-
       </div>
-
     </section>
-  );
-}
-
-// Keep request-time authentication inside Suspense.
-export default function DashboardPage() {
-  return (
-    <Suspense fallback={<DashboardLoading />}>
-      <DashboardContent />
-    </Suspense>
   );
 }

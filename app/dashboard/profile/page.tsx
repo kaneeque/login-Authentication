@@ -1,31 +1,8 @@
 
-import { Suspense } from "react";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth";
+import { requireSession } from "@/lib/dal";
 
-function ProfileLoading() {
-  return (
-    <div className="animate-pulse space-y-6">
-      <div className="h-8 w-48 rounded-lg bg-slate-200" />
-      <div className="h-64 rounded-xl bg-slate-200" />
-    </div>
-  );
-}
-
-async function ProfileContent() {
-  const cookieStore = await cookies();
-  const token = cookieStore.get("session")?.value;
-
-  if (!token) {
-    redirect("/login");
-  }
-
-  const session = await getSession(token);
-
-  if (!session) {
-    redirect("/login");
-  }
+export default async function ProfilePage() {
+  const session = await requireSession();
 
   const email =
     typeof session.sub === "string"
@@ -36,8 +13,6 @@ async function ProfileContent() {
 
   return (
     <section className="mx-auto max-w-7xl space-y-8">
-
-      {/* Page Heading */}
       <div>
         <p className="text-sm font-medium text-teal-700">
           ACCOUNT MANAGEMENT
@@ -53,13 +28,10 @@ async function ProfileContent() {
       </div>
 
       <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-
         <div className="h-32 bg-gradient-to-r from-teal-800 to-emerald-700" />
 
         <div className="px-6 pb-8">
-
           <div className="-mt-12 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-
             <div className="flex items-end gap-4">
               <div className="flex h-24 w-24 items-center justify-center rounded-2xl border-4 border-white bg-teal-50 text-3xl font-bold text-teal-800 shadow-sm">
                 {initials}
@@ -83,13 +55,11 @@ async function ProfileContent() {
           </div>
 
           <div className="mt-10 border-t border-slate-100 pt-8">
-
             <h3 className="text-lg font-semibold text-slate-900">
               Personal Information
             </h3>
 
             <div className="mt-6 grid gap-6 sm:grid-cols-2">
-
               <div>
                 <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
                   Account Name
@@ -129,15 +99,12 @@ async function ProfileContent() {
                   JWT Authentication
                 </p>
               </div>
-
             </div>
           </div>
-
         </div>
       </div>
 
       <div className="rounded-xl border border-teal-100 bg-teal-50 p-6">
-
         <div className="flex items-start gap-3">
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-teal-800">
             🔒
@@ -155,17 +122,7 @@ async function ProfileContent() {
             </p>
           </div>
         </div>
-
       </div>
-
     </section>
-  );
-}
-
-export default function ProfilePage() {
-  return (
-    <Suspense fallback={<ProfileLoading />}>
-      <ProfileContent />
-    </Suspense>
   );
 }
